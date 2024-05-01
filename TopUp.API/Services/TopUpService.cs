@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TopUp.API.Data;
+using TopUp.API.Exceptions;
 using TopUp.API.Models;
 using TopUp.API.Services.UserBalance;
 
@@ -8,7 +9,7 @@ namespace TopUp.API.Services
     public class TopUpService : ITopUpService
     {
         private const decimal VerifiedUserBeneficiaryMonthlyLimit = 1_000m;
-        private const decimal unVerifiedUserBeneficiaryMonthlyLimit = 1000m;
+        private const decimal unVerifiedUserBeneficiaryMonthlyLimit = 500m;
         private const decimal TotalMonthlyLimit = 3_000m;
 
         private readonly TopUpDbContext _context;
@@ -22,13 +23,13 @@ namespace TopUp.API.Services
 
         public async Task TopUp(decimal amount, Guid beneficiaryId, Guid userId)
         {
-            var beneficiary = await _context.TopUpBeneficiaries.FirstOrDefaultAsync(x => x.Id == beneficiaryId);
-            if (beneficiary == null)
-            {
-                throw new BeneficiaryNotFoundException("Beneficiary not found");
-            }
+             if (amount <= 0) throw new InvalidAmountException("Invalid amount");
+            
+            var topUpOption = await _context.TopUpOptions.FirstOrDefaultAsync(x => x.Amount == amount) ?? throw new TopUpOptionNotFoundException("Top up option not found.");
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw new UserNotFoundException("User not found");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId) ?? throw new UserNotFoundException("User not found.");
+
+            var beneficiary = await _context.TopUpBeneficiaries.FirstOrDefaultAsync(x => x.Id == beneficiaryId && x.UserId == userId ) ?? throw new BeneficiaryNotFoundException("Beneficiary not found.");
 
             await CheckIfUserExceededMonthlyLimitForBeneficiary(amount, beneficiary, user);
 
@@ -37,7 +38,7 @@ namespace TopUp.API.Services
             var userBalance = await _balanceService.GetUserBalance(userId);
             if (userBalance < amount + 1m)
             {
-                throw new InsufficientBalanceException("Insufficient balance");
+                throw new InsufficientBalanceException($"User {userId} has insufficient balance to top up {amount}.");
             }
 
             await _balanceService.DebitUserBalance(userId, amount + 1m);
@@ -65,6 +66,8 @@ namespace TopUp.API.Services
             await _context.TopUpTransactions.AddAsync(chargeTransaction);
 
             await _context.SaveChangesAsync();
+
+
         }
 
         private async Task CheckIfTheUserExceededTotalLimit(decimal amount, Guid userId)

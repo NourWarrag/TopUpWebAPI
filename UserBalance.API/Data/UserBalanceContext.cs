@@ -10,5 +10,10 @@ namespace UserBalance.API.Data
         }
 
         public DbSet<UserBalanceModel> UserBalances { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UserBalanceModel>().Property(x => x.Balance).HasPrecision(19, 4);
+        }
     }
 }

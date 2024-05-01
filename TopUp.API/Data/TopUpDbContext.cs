@@ -37,7 +37,9 @@ namespace TopUp.API.Data
                 .WithOne()
                 .HasForeignKey(t => t.UserId);
 
-           
+            modelBuilder.Entity<TopUpTransaction>().Property(x => x.Amount).HasPrecision(19, 4);
+
+            modelBuilder.Entity<TopUpOption>().Property(x => x.Amount).HasPrecision(19, 4);
 
         }
     }

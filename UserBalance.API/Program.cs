@@ -7,7 +7,7 @@ namespace UserBalance.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +24,7 @@ namespace UserBalance.API
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
-
+            await app.InitialiseDatabaseAsync();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

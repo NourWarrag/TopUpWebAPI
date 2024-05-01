@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using TopUp.API.Models;
+using TopUp.API.Exceptions;
 
 namespace TopUp.API.Services.UserBalance
 {
