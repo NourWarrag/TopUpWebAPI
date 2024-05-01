@@ -1,4 +1,4 @@
-﻿namespace TopUp.API.Models
+﻿namespace TopUp.API.Exceptions
 {
     public class UserNotFoundException : Exception
     {

@@ -58,22 +58,13 @@ namespace UserBalance.API.Data
         public async Task TrySeedAsync()
         {
 
-
-          
-
-            if (!_context.UserBalances.Any())
-            {
-
-                await _context.SaveChangesAsync();
-            }
-
             if (!_context.UserBalances.Any())
             {
 
                 _context.UserBalances.AddRange(new List<UserBalanceModel>
             {
-               new() { UserId = new Guid(), Balance = 3_500  },
-               new() {UserId = new Guid(), Balance = 2_500 },
+               new() { UserId = new Guid("49AFBE99-EB5E-4E82-AA7D-5116D71268CA"), Balance = 2_500  },
+               new() {UserId = new Guid("6CF37BBC-68A0-4E16-9122-3B58D65A8F64"), Balance = 3_500 },
               
             });
 

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopUp.API", "TopUp.API\TopU
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserBalance.API", "UserBalance.API\UserBalance.API.csproj", "{05096B99-27F4-4853-BA12-011AB99C3B7A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TopUp.API.Tests", "TopUp.API.Tests\TopUp.API.Tests.csproj", "{5E1BC701-4FFE-49CD-B664-7CD03FA1455D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{05096B99-27F4-4853-BA12-011AB99C3B7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05096B99-27F4-4853-BA12-011AB99C3B7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05096B99-27F4-4853-BA12-011AB99C3B7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E1BC701-4FFE-49CD-B664-7CD03FA1455D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E1BC701-4FFE-49CD-B664-7CD03FA1455D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E1BC701-4FFE-49CD-B664-7CD03FA1455D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E1BC701-4FFE-49CD-B664-7CD03FA1455D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

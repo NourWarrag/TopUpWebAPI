@@ -59,13 +59,23 @@ namespace TopUp.API.Data
         {
 
 
-            // Default users
-            var verifiedTestUser = new User { Name = "VerifiedTestUser", PhoneNumber = "+971562552122" };
-            var unverifiedTestUser = new User { Name = "UnverifiedTestUser", PhoneNumber = "+971562552123" };
+            if(!_context.Users.Any())
+            {
+                var verifiedTestUser = new User { Id = new Guid("6CF37BBC-68A0-4E16-9122-3B58D65A8F64"), Name = "VerifiedTestUser", PhoneNumber = "+971562552122", IsVerified = true };
+                var unverifiedTestUser = new User { Id = new Guid("49AFBE99-EB5E-4E82-AA7D-5116D71268CA"), Name = "UnverifiedTestUser", PhoneNumber = "+971562552123", IsVerified = false };
 
+                _context.Users.AddRange(new List<User> { verifiedTestUser, unverifiedTestUser });
+
+                await _context.SaveChangesAsync();
+            }
             if (!_context.TopUpBeneficiaries.Any())
             {
+                _context.TopUpBeneficiaries.AddRange(new List<TopUpBeneficiary>
+                {
+                    new TopUpBeneficiary { UserId = new Guid("6CF37BBC-68A0-4E16-9122-3B58D65A8F64"), NickName = "TestBeneficiary", PhoneNumber = "+971562552124" },
+                    new TopUpBeneficiary { UserId = new Guid("49AFBE99-EB5E-4E82-AA7D-5116D71268CA"), NickName = "TestBeneficiary", PhoneNumber = "+971562552125" },
 
+                });
                 await _context.SaveChangesAsync();
             }
 
