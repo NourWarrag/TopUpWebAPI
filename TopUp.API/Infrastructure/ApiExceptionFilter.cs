@@ -7,22 +7,23 @@ namespace TopUp.API.Infrastructure
 {
     public class ApiExceptionFilter : ExceptionFilterAttribute
     {
-        private readonly IDictionary<Type, Action<ExceptionContext>> _exceptionHandlers;
+        private readonly IDictionary<Type, Func<Exception, ProblemDetails>> _exceptionHandlers;
 
         public ApiExceptionFilter()
         {
-            // Register known exception types and handlers.
-            _exceptionHandlers = new Dictionary<Type, Action<ExceptionContext>>
+            
+            _exceptionHandlers = new Dictionary<Type, Func<Exception, ProblemDetails>>
             {
-                { typeof(BeneficiaryAlreadyExistsException), HandleBeneficiaryAlreadyExistsException},
-                { typeof(BeneficiaryNotFoundException), HandleBeneficiaryNotFoundException },
-                { typeof(BeneficiaryLimitExceededException), HandleBeneficiaryLimitExceededException },
-                { typeof(InsufficientBalanceException), HandleInsufficientBalanceException },
-                { typeof(UserNotFoundException), HandleUserNotFoundException },
-                { typeof(UserBalanceNotFoundException), HandleUserBalanceNotFoundException },
-                { typeof(MonthlyLimitExceededException), HandleMonthlyLimitExceededException },
-
-
+                { typeof(BeneficiaryAlreadyExistsException), e => HandleException(e, "A beneficiary already exists.", StatusCodes.Status400BadRequest)},
+                { typeof(BeneficiaryNotFoundException), e => HandleException(e, "A beneficiary was not found.", StatusCodes.Status404NotFound) },
+                { typeof(BeneficiaryLimitExceededException), e => HandleException(e, "Beneficiary limit exceeded.", StatusCodes.Status400BadRequest) },
+                { typeof(InsufficientBalanceException), e => HandleException(e, "Insufficient balance.", StatusCodes.Status400BadRequest) },
+                { typeof(UserNotFoundException), e => HandleException(e, "A user was not found.", StatusCodes.Status404NotFound) },
+                { typeof(UserBalanceNotFoundException), e => HandleException(e, "A user balance was not found.", StatusCodes.Status404NotFound) },
+                { typeof(MonthlyLimitExceededException), e => HandleException(e, "Monthly limit exceeded.", StatusCodes.Status400BadRequest) },
+                { typeof(InvalidAmountException), e => HandleException(e, "Invalid amount.", StatusCodes.Status400BadRequest) },
+                { typeof(TopUpOptionNotFoundException), e => HandleException(e, "Top up option not found.", StatusCodes.Status400BadRequest) }
+               
             };
         }
 
@@ -38,7 +39,9 @@ namespace TopUp.API.Infrastructure
             Type type = context.Exception.GetType();
             if (_exceptionHandlers.ContainsKey(type))
             {
-                _exceptionHandlers[type].Invoke(context);
+                var details = _exceptionHandlers[type].Invoke(context.Exception);
+                context.Result = details.Status == StatusCodes.Status404NotFound ? new NotFoundObjectResult(details) : new BadRequestObjectResult(details);
+                context.ExceptionHandled = true;
                 return;
             }
 
@@ -51,112 +54,15 @@ namespace TopUp.API.Infrastructure
             HandleUnknownException(context);
         }
 
-        private void HandleUserNotFoundException(ExceptionContext context)
+        private ProblemDetails HandleException(Exception exception, string title, int status)
         {
-            var exception = context.Exception as UserNotFoundException;
-
-            var details = new ProblemDetails
+            return new ProblemDetails
             {
-                Status = StatusCodes.Status404NotFound,
-                Title = "A user was not found.",
+                Status = status,
+                Title = title,
                 Detail = exception.Message
             };
-
-            context.Result = new NotFoundObjectResult(details);
-
-            context.ExceptionHandled = true;
         }
-        private void HandleInsufficientBalanceException(ExceptionContext context)
-        {
-            var exception = context.Exception as InsufficientBalanceException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Insufficient balance.",
-                Detail = exception.Message
-            };
-
-            context.Result = new BadRequestObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-        private void HandleUserBalanceNotFoundException(ExceptionContext context)
-        {
-            var exception = context.Exception as UserBalanceNotFoundException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "A user balance was not found.",
-                Detail = exception.Message
-            };
-
-            context.Result = new NotFoundObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-        private void HandleMonthlyLimitExceededException(ExceptionContext context)
-        {
-            var exception = context.Exception as MonthlyLimitExceededException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Monthly limit exceeded.",
-                Detail = exception.Message
-            };
-
-            context.Result = new BadRequestObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-        private void HandleBeneficiaryLimitExceededException(ExceptionContext context)
-        {
-            var exception = context.Exception as BeneficiaryLimitExceededException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "Beneficiary limit exceeded.",
-                Detail = exception.Message
-            };
-
-            context.Result = new BadRequestObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-        private void HandleBeneficiaryAlreadyExistsException(ExceptionContext context)
-        {
-            var exception = context.Exception as BeneficiaryAlreadyExistsException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status400BadRequest,
-                Title = "A beneficiary already exists.",
-                Detail = exception.Message
-            };
-
-            context.Result = new BadRequestObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-        private void HandleBeneficiaryNotFoundException(ExceptionContext context)
-        {
-            var exception = context.Exception as BeneficiaryNotFoundException;
-
-            var details = new ProblemDetails
-            {
-                Status = StatusCodes.Status404NotFound,
-                Title = "A beneficiary was not found.",
-                Detail = exception.Message
-            };
-
-            context.Result = new NotFoundObjectResult(details);
-
-            context.ExceptionHandled = true;
-        }
-
 
         private void HandleInvalidModelStateException(ExceptionContext context)
         {
@@ -166,9 +72,6 @@ namespace TopUp.API.Infrastructure
 
             context.ExceptionHandled = true;
         }
-
-      
-      
 
         private void HandleUnknownException(ExceptionContext context)
         {
@@ -187,3 +90,4 @@ namespace TopUp.API.Infrastructure
         }
     }
 }
+
