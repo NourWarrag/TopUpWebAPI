@@ -120,12 +120,12 @@ namespace TopUp.API.Services
             var existingUserBeneficiary = await _context.TopUpBeneficiaries.FirstOrDefaultAsync(x => x.UserId == beneficiary.UserId && x.PhoneNumber == beneficiary.PhoneNumber);
             if (existingUserBeneficiary != null)
             {
-                throw new BeneficiaryAlreadyExistsException("Beneficiary already exists");
+                throw new BeneficiaryAlreadyExistsException("A beneficiary with the same phone number already exists.");
             };
             var existingUserBenificiariesCount = await _context.TopUpBeneficiaries.CountAsync(x => x.UserId == beneficiary.UserId);
             if (existingUserBenificiariesCount >= 5)
             {
-                throw new BeneficiaryLimitExceededException("Beneficiary limit exceeded");
+                throw new BeneficiaryLimitExceededException("already added the maximum number of beneficiaries.");
             }
 
             await _context.TopUpBeneficiaries.AddAsync(beneficiary);

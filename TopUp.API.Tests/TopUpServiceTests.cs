@@ -267,7 +267,72 @@ public class TopUpServiceTests
         Assert.NotNull(transaction);
     }
 
+    [Fact]
+    public async Task AddTopUpBeneficiary_WithValidData_ShouldAddBeneficiarySuccessfully()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User { Id = userId, Name = "Test User", PhoneNumber = "1234567890" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
+        var beneficiary = new TopUpBeneficiary { Id = Guid.NewGuid(), NickName = "Test Beneficiary", PhoneNumber = "1234567890", UserId = userId };
+
+        // Act
+        var addedBeneficiary = await _service.AddTopUpBeneficiary(beneficiary);
+
+        // Assert
+        Assert.NotNull(addedBeneficiary);
+        Assert.Equal(beneficiary.Id, addedBeneficiary.Id);
+        Assert.Equal(beneficiary.NickName, addedBeneficiary.NickName);
+        Assert.Equal(beneficiary.PhoneNumber, addedBeneficiary.PhoneNumber);
+        Assert.Equal(beneficiary.UserId, addedBeneficiary.UserId);
+    }
+
+    [Fact]
+    public async Task AddTopUpBeneficiary_WithSamePhoneNumber_ShouldThrowException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User { Id = userId, Name = "Test User", PhoneNumber = "1234567890" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var beneficiary = new TopUpBeneficiary { Id = Guid.NewGuid(), NickName = "Test Beneficiary", PhoneNumber = "1234567890", UserId = userId };
+        _context.TopUpBeneficiaries.Add(beneficiary);
+        await _context.SaveChangesAsync();
+
+        var samePhoneNumberBeneficiary = new TopUpBeneficiary { Id = Guid.NewGuid(), NickName = "Same Phone Number Beneficiary", PhoneNumber = "1234567890", UserId = userId };
+
+        // Act and Assert
+        var exception = await Assert.ThrowsAsync<BeneficiaryAlreadyExistsException>(() => _service.AddTopUpBeneficiary(samePhoneNumberBeneficiary));
+        Assert.Equal("A beneficiary with the same phone number already exists.", exception.Message);
+    }
+
+    [Fact]
+    public async Task AddTopUpBeneficiary_WhenUserHasFiveBeneficiaries_ShouldThrowException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var user = new User { Id = userId, Name = "Test User", PhoneNumber = "1234567890" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        for (int i = 0; i < 5; i++)
+        {
+            var beneficiary = new TopUpBeneficiary { Id = Guid.NewGuid(), NickName = $"Test Beneficiary {i}", PhoneNumber = $"123456789{i}", UserId = userId };
+            _context.TopUpBeneficiaries.Add(beneficiary);
+        }
+        await _context.SaveChangesAsync();
+
+        var newBeneficiary = new TopUpBeneficiary { Id = Guid.NewGuid(), NickName = "New Beneficiary", PhoneNumber = "0987654321", UserId = userId };
+
+        // Act and Assert
+        var exception = await Assert.ThrowsAsync<BeneficiaryLimitExceededException>(() => _service.AddTopUpBeneficiary(newBeneficiary));
+        Assert.Equal("already added the maximum number of beneficiaries.", exception.Message);
+    }
+
+   
     public void Dispose()
     {
         _context.Database.EnsureDeleted();
